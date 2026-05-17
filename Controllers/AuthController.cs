@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using yourmomENT.Dto;
-using yourmomENT.DTO;
 using yourmomENT.Service;
 
 namespace yourmomENT.Controllers;
@@ -10,7 +9,7 @@ namespace yourmomENT.Controllers;
 public class AuthController(IUserService userService) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
+    public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         var exists = await userService.UserExistsAsync(registerDto.Email);
 

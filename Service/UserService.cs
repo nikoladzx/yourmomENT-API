@@ -1,5 +1,4 @@
 ﻿using yourmomENT.Data;
-using yourmomENT.DTO;
 using yourmomENT.Models;
 using yourmomENT.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +8,7 @@ namespace yourmomENT.Service;
 
 public class UserService(AppDbContext context, ITokenGenerator tokenGenerator) : IUserService
 {
-    public async Task<string> RegisterAsync(RegisterDTO dto)
+    public async Task<string> RegisterAsync(RegisterDto dto)
     {
         var exists = await context.Users.AnyAsync(x => x.Email == dto.Email);
         if (exists)
@@ -36,13 +35,8 @@ public class UserService(AppDbContext context, ITokenGenerator tokenGenerator) :
         var user = await context.Users
             .FirstOrDefaultAsync(x => x.Email == dto.Email);
 
-        if (user == null)
-            throw new InvalidOperationException("User doesn't exists");
-
-        var isValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
-
-        if (!isValid)
-            return null;
+        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
+            throw new UnauthorizedAccessException("Invalid credentials");
 
         return tokenGenerator.GenerateToken(
             user.Id.ToString(),

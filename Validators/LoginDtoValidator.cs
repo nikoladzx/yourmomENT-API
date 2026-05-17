@@ -1,9 +1,9 @@
 ﻿namespace yourmomENT.Validators;
 
 using FluentValidation;
-using yourmomENT.DTO;
+using yourmomENT.Dto;
 
-public class LoginDtoValidator : AbstractValidator<RegisterDTO>
+public class LoginDtoValidator : AbstractValidator<LoginDto>
 {
     public LoginDtoValidator()
     {
@@ -12,10 +12,6 @@ public class LoginDtoValidator : AbstractValidator<RegisterDTO>
             .EmailAddress();
 
         RuleFor(x => x.Password)
-            .MinimumLength(8);
-
-        RuleFor(x => x.Username)
-            .NotEmpty()
             .MinimumLength(8);
     }
 }

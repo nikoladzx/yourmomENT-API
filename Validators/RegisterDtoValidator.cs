@@ -1,9 +1,9 @@
 ﻿namespace yourmomENT.Validators;
 
 using FluentValidation;
-using yourmomENT.DTO;
+using yourmomENT.Dto;
 
-public class RegisterDtoValidator : AbstractValidator<RegisterDTO>
+public class RegisterDtoValidator : AbstractValidator<RegisterDto>
 {
     public RegisterDtoValidator()
     {

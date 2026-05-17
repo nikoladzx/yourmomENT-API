@@ -1,12 +1,11 @@
 ﻿using yourmomENT.Dto;
-using yourmomENT.DTO;
 using yourmomENT.Models;
 
 namespace yourmomENT.Service;
 
 public interface IUserService
 {
-    Task<string> RegisterAsync(RegisterDTO dto);
+    Task<string> RegisterAsync(RegisterDto dto);
 
     Task<string> LoginAsync(LoginDto dto);
 

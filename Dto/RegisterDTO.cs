@@ -1,6 +1,6 @@
-﻿namespace yourmomENT.DTO;
+﻿namespace yourmomENT.Dto;
 
-public class RegisterDTO
+public class RegisterDto
 {
     public required string Username { get; set; }
     
