@@ -1,0 +1,6 @@
+@yourmomENT_HostAddress = http://localhost:5111
+
+GET {{yourmomENT_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
