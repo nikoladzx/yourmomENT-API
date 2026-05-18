@@ -53,4 +53,41 @@ public class UserService(AppDbContext context, ITokenGenerator tokenGenerator) :
     {
         return await context.Users.AnyAsync(x => x.Email == email);
     }
+    
+    public async Task<string> SteamLoginAsync(SteamUserDto steamUserDto)
+    {
+        var user = await context.Users
+            .FirstOrDefaultAsync(x => x.SteamId == steamUserDto.SteamId);
+
+        if (user == null)
+        {
+            user = new User
+            {
+                SteamId = steamUserDto.SteamId,
+                Username = steamUserDto.Username,
+                AvatarUrl = steamUserDto.AvatarUrl
+            };
+
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            user.Username = steamUserDto.Username;
+            user.AvatarUrl = steamUserDto.AvatarUrl;
+
+            await context.SaveChangesAsync();
+        }
+
+        return tokenGenerator.GenerateToken(
+            user.Id.ToString(),
+            user.Username
+        );
+    }
+
+    public async Task<User?> GetBySteamIdAsync(string steamId)
+    {
+        return await context.Users
+            .FirstOrDefaultAsync(x => x.SteamId == steamId);
+    }
 }
