@@ -10,7 +10,7 @@ public class TokenGenerator(IOptions<JwtSettings> jwtOptions) : ITokenGenerator
 {
     private readonly JwtSettings _jwt = jwtOptions.Value;
 
-    public string GenerateToken(string userId, string email)
+    public string GenerateToken(string userId, string? email)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var keyBytes = Encoding.UTF8.GetBytes(_jwt.Key);
@@ -22,9 +22,11 @@ public class TokenGenerator(IOptions<JwtSettings> jwtOptions) : ITokenGenerator
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Email, email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+        
+        if (!string.IsNullOrEmpty(email))
+            claims.Add(new Claim(ClaimTypes.Email, email));
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
