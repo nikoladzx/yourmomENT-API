@@ -49,7 +49,7 @@ public class AuthController(
         if (user == null)
             return Unauthorized();
 
-        return Redirect($"{_frontendUrl}/auth/steam-success");
+        return Redirect(_frontendUrl);
     }
 
     [HttpPost("logout")]
