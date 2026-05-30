@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.Extensions.Options;
 using yourmomENT.Dto;
 using yourmomENT.Service;
 
@@ -9,50 +10,13 @@ namespace yourmomENT.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IUserService userService, ISteamService steamServiceUtils) : ControllerBase
+public class AuthController(
+    ISteamService steamServiceUtils,
+    IOptions<FrontendOptions> frontendOptions
+) : ControllerBase
 {
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
-    {
-        var exists = await userService.UserExistsAsync(registerDto.Email);
+    private readonly string _frontendUrl = frontendOptions.Value.BaseUrl;
 
-        if (exists)
-        {
-            return Conflict(new { message = "User already exists" });
-        }
-
-        var token = await userService.RegisterAsync(registerDto);
-
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return StatusCode(500, new { message = "Registration failed" });
-        }
-
-        return Ok(new
-        {
-            message = "User registered successfully",
-            token = token,
-            user = new
-            {
-                registerDto.Username,
-                registerDto.Email
-            }
-        });
-    }
-
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
-    {
-        var token = await userService.LoginAsync(loginDto);
-
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return Unauthorized(new { message = "Invalid credentials" });
-        }
-
-        return Ok(new { token });
-    }
-    
     [HttpGet("steam")]
     public IActionResult SteamLogin()
     {
@@ -61,26 +25,19 @@ public class AuthController(IUserService userService, ISteamService steamService
             RedirectUri = Url.Action(nameof(SteamResponse))
         };
 
-        return Challenge(
-            properties,
-            SteamAuthenticationDefaults.AuthenticationScheme);
+        return Challenge(properties, SteamAuthenticationDefaults.AuthenticationScheme);
     }
 
     [HttpGet("steam/callback")]
     public async Task<IActionResult> SteamResponse()
     {
-        var result =
-            await HttpContext.AuthenticateAsync("Cookies");
+        var result = await HttpContext.AuthenticateAsync(
+            SteamAuthenticationDefaults.AuthenticationScheme);
 
         if (!result.Succeeded)
             return Unauthorized();
 
-        var principal = result.Principal;
-        
-        var steamIdUrl = principal?
-            .FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        var username = principal?.Identity?.Name;
+        var steamIdUrl = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         if (steamIdUrl == null)
             return Unauthorized();
@@ -90,12 +47,15 @@ public class AuthController(IUserService userService, ISteamService steamService
         var user = await steamServiceUtils.GetSteamUserAsync(steamId);
 
         if (user == null)
-        {
             return Unauthorized();
-        }
-        
-        var token = await userService.SteamLoginAsync(user);
 
-        return Redirect($"http://localhost:3000/auth-success?token={token}");
+        return Redirect($"{_frontendUrl}/auth/steam-success");
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync("Cookies");
+        return Ok();
     }
 }

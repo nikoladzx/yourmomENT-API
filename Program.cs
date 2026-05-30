@@ -4,29 +4,29 @@ using Microsoft.EntityFrameworkCore;
 using yourmomENT.Data;
 using yourmomENT.ExceptionHandling;
 using yourmomENT.Service;
-using yourmomENT.Utils;
 using AspNet.Security.OpenId.Steam;
+using yourmomENT.Dto;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-var corsOrigins = builder.Configuration
-    .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? [];
+var frontendUrl = builder.Configuration["Frontend:BaseUrl"];
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        policy
-            .WithOrigins(corsOrigins)
+        policy.WithOrigins(frontendUrl!)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
     });
 });
+
+builder.Services.Configure<FrontendOptions>(
+    builder.Configuration.GetSection("Frontend"));
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -54,10 +54,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddOpenApi();
 
-builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("Jwt"));
-
-builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddHttpClient<ISteamService, SteamService>();
 
